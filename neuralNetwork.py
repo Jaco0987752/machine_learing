@@ -5,6 +5,7 @@ Created on Tue Apr 26 12:31:20 2022
 @author: Jaco
 """
 import dataSets
+import math
 
 # An abstract class that contains a value of a certain type.
 class AbstractContainer:
@@ -37,10 +38,14 @@ class OutputNode(AbstractNode):
     
     def getValue(self):
         results = []
+        
+        def sigmoid(x):
+            return 1/(1+math.exp(-x))
+        
         for link in self.links:
             results.append((link.inputNode.getValue() * link.getValue()))
         #print("single output:" + str(results))    
-        return sum(results) / len(results)
+        return sigmoid(sum(results)) / len(results)
 
 
 # This class represents a link between the nodes.
@@ -103,7 +108,23 @@ class Network:
                 self.inputNodes[i].setValue(inputs[i])
         else:
             print("list inputs inequal to inputNodes")
+    
+    def test(self, testSet):
+        for label, image in testSet:
+            network.setInput(image)
+            cross, circle = network.evaluate()
+                
+            # Take square of the values.
+            square = cross**2.0 + circle**2.0
+            cross, circle = cross**2.0 / square, circle**2.0 / square
+                
+            # Inform user of intermediate result.
+            stringCrossOfCircle = "cross" if label else "circle"
+            #print(stringCrossOfCircle + " cross: " + str(cross) + " circle: " + str(circle))
+                
+            result = "cross" if cross > circle else "circle"
             
+            print("result: " + str(result) + ", expected result: " +  str(stringCrossOfCircle))
     
 class Learner(Network):
 
@@ -132,7 +153,7 @@ class Learner(Network):
                 newValue = link.getValue() + self.weightChange * startRoundCost
                 link.setValue(newValue)
                 costs = 1 - self.getResults(testSet)
-#                print("cost: " + str(costs))
+                #print("cost: " + str(costs))
                 # Place the old value back so that every link can be experimented in the same way.
                 link.setValue(oldValue)
                 
@@ -174,11 +195,12 @@ class Learner(Network):
             if(stringCrossOfCircle == "circle"):
                 results.append(circle)
         return sum(results) / len(results)
+
     
 network = Learner(9,2)
 result = network.learn(dataSets.trainSet)
 
-print(network.getResults(dataSets.trainSet))
+network.test(dataSets.trainSet)
 
 
 #for output in network.outputNodes:
