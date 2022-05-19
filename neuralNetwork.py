@@ -200,11 +200,4 @@ class Learner(Network):
 network = Learner(9,2)
 result = network.learn(dataSets.trainSet)
 
-network.test(dataSets.trainSet)
-
-
-#for output in network.outputNodes:
-#    for link in output.links:
-#        print(link.getValue())
-            
-        
+network.test(dataSets.testSet)
